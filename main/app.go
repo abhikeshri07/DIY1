@@ -15,6 +15,7 @@ type App struct {
 	DB       *gorm.DB
 	Router   *mux.Router
 	products services.IProducts
+	stores   services.IStores
 }
 
 func (a *App) Initialize(host, port, username, password, dbname string) {
@@ -26,7 +27,8 @@ func (a *App) Initialize(host, port, username, password, dbname string) {
 	}
 	log.Println("Database Initialized")
 	a.Router = mux.NewRouter()
-
+	a.products = services.NewProduct(a.DB)
+	a.stores = services.NewStore(a.DB)
 	a.InitializeRoutes()
 	log.Println("Routes Initialized")
 }
@@ -52,5 +54,8 @@ func (a *App) InitializeRoutes() {
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.GetProduct).Methods("GET")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.UpdateProduct).Methods("PUT")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.DeleteProduct).Methods("DELETE")
+
+	a.Router.HandleFunc("/stores/{id:[0-9]+}/products", a.stores.GetProducts).Methods("GET")
+	a.Router.HandleFunc("/stores/{id:[0-9]+}", a.stores.AddProducts).Methods("POST")
 
 }
