@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/abhikeshri07/go-mux/services"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -11,8 +12,9 @@ import (
 )
 
 type App struct {
-	DB     *gorm.DB
-	Router *mux.Router
+	DB       *gorm.DB
+	Router   *mux.Router
+	products services.IProducts
 }
 
 func (a *App) Initialize(host, port, username, password, dbname string) {
@@ -45,4 +47,10 @@ func (a *App) home(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) InitializeRoutes() {
 	a.Router.HandleFunc("/", a.home).Methods("GET")
+	a.Router.HandleFunc("/products", a.products.GetProducts).Methods("POST")
+	a.Router.HandleFunc("/product", a.products.CreateProduct).Methods("POST")
+	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.GetProduct).Methods("GET")
+	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.UpdateProduct).Methods("PUT")
+	a.Router.HandleFunc("/product/{id:[0-9]+}", a.products.DeleteProduct).Methods("DELETE")
+
 }
