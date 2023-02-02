@@ -5,7 +5,7 @@ import (
 )
 
 type ProductModel struct {
-	ID    uint    `json:"id" gorm:"primaryKey"`
+	ID    int64   `json:"id" gorm:"primaryKey"`
 	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }

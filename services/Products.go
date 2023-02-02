@@ -24,15 +24,15 @@ type IProducts interface {
 
 func (p *Products) GetProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
 		log.Fatal("Invalid Product ID")
 	}
-	productModel := models.ProductModel{ID: uint(id)}
+	productModel := models.ProductModel{ID: id}
 	result := productModel.GetProduct(p.conn)
 
-	if result.Error == nil && result.RowsAffected == 0 {
+	if result.Error != nil && result.Error == gorm.ErrRecordNotFound {
 		utils.RespondWithError(w, http.StatusNotFound, "Product Not Found")
 	} else if result.Error != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, result.Error.Error())
@@ -73,12 +73,12 @@ func (p *Products) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	// get initial product
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
 		return
 	}
-	product := models.ProductModel{ID: uint(id)}
+	product := models.ProductModel{ID: id}
 	result := product.GetProduct(p.conn)
 	if result.Error != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, result.Error.Error())
@@ -108,12 +108,12 @@ func (p *Products) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 func (p *Products) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	// get initial product
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Product ID")
 		return
 	}
-	product := models.ProductModel{ID: uint(id)}
+	product := models.ProductModel{ID: id}
 	result := product.GetProduct(p.conn)
 	if result.Error != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, result.Error.Error())

@@ -13,32 +13,23 @@ type StoreModel struct {
 }
 
 func (s *StoreModel) GetProductsInStore(db *gorm.DB, limit, start int) []ProductModel {
-	var productsInStore []StoreModel
+	var productIds []int64
 	var products []ProductModel
-	result := db.Model(&StoreModel{}).Where("store_id = ?", s.StoreId).Limit(limit).Offset(start).Find(&productsInStore)
-
-	if result.Error != nil {
-		fmt.Println("Some error occurred")
-		return nil
-	}
 	tx := db.Begin()
-	for i := 0; i < len(productsInStore); i++ {
-		p := ProductModel{ID: uint(productsInStore[i].ProductId)}
-		result := db.First(&p)
-		if result.Error != nil {
-			tx.Rollback()
-			break
-		}
-		products = append(products, p)
-
-	}
-	if tx.Error != nil {
+	db.Model(&StoreModel{}).Where("store_id = ?", s.StoreId).Limit(limit).Offset(start).Pluck("product_id", &productIds)
+	fmt.Println(productIds)
+	if productIds == nil {
+		fmt.Println("No Products found in the store")
 		return nil
 	}
+
+	db.Model(&ProductModel{}).Where("id IN ?", productIds).Find(&products)
+	//fmt.Println(products)
 	tx.Commit()
 	return products
 }
 
+// todo bulk insert
 func (s *StoreModel) AddProducts(db *gorm.DB, products []ProductModel) bool {
 
 	tx := db.Begin()
@@ -56,10 +47,7 @@ func (s *StoreModel) AddProducts(db *gorm.DB, products []ProductModel) bool {
 		if result.RowsAffected == 0 {
 			result = db.Create(&s)
 		}
-		if result.Error != nil {
-			tx.Rollback()
-			break
-		}
+
 	}
 	if tx.Error != nil {
 		return false

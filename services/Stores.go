@@ -22,18 +22,28 @@ type IStores interface {
 
 func (s *Stores) GetProducts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	limit, _ := strconv.Atoi(r.FormValue("limit"))
-	start, _ := strconv.Atoi(r.FormValue("start"))
+	limit, limitError := strconv.Atoi(r.FormValue("limit"))
+	start, startError := strconv.Atoi(r.FormValue("start"))
 	id, err := strconv.Atoi(vars["id"])
+	if limitError != nil && r.FormValue("limit") != "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Format of limit. Send an integer as the limit value")
+		return
+
+	}
+	if startError != nil && r.FormValue("start") != "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Format of start. Send an integer as the start value")
+
+	}
 	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Store ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid format of Store ID. Send an integer as the Store ID")
 		return
 	}
+
 	store := models.StoreModel{StoreId: int64(id)}
 	products := store.GetProductsInStore(s.conn, limit, start)
 
 	if products == nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Some Error Occurred")
+		utils.RespondWithError(w, http.StatusInternalServerError, "No products found at the specified store")
 		return
 	}
 	utils.RespondWithJSON(w, http.StatusOK, products)
@@ -43,7 +53,7 @@ func (s *Stores) AddProducts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, "Invalid Store ID")
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid format of Store ID. Send an integer as the Store ID")
 		return
 	}
 
@@ -57,6 +67,7 @@ func (s *Stores) AddProducts(w http.ResponseWriter, r *http.Request) {
 	}
 	result := store.AddProducts(s.conn, products)
 	if !result {
+
 		utils.RespondWithError(w, http.StatusInternalServerError, "Some Error Occurred")
 		return
 	}
