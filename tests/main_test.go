@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -36,5 +38,15 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 func checkResponseCode(t *testing.T, expected, actual int) {
 	if expected != actual {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
+	}
+}
+func (a *App) assertJSON(actual []byte, data interface{}, t *testing.T) {
+	expected, err := json.Marshal(data)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when marshaling expected json data", err)
+	}
+
+	if bytes.Compare(expected, actual) != 0 {
+		t.Errorf("the expected json: %s is different from actual %s", expected, actual)
 	}
 }

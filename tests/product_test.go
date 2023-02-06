@@ -12,7 +12,7 @@ import (
 func TestGetNonExistentProduct(t *testing.T) {
 	//clearTable()
 
-	req, _ := http.NewRequest("GET", "/product/55", nil)
+	req, _ := http.NewRequest("GET", "/product/1", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
@@ -62,14 +62,6 @@ func TestGetProduct(t *testing.T) {
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
-}
-
-type result struct {
-	lastValue int64
-}
-
-func (r *result) TableName() string {
-	return "products_id_seq"
 }
 
 func TestUpdateProduct(t *testing.T) {
